@@ -1,5 +1,9 @@
 #include "processor.h"
 
+// Forward declarations
+int dispatch(struct processor* proc, struct instr in);
+struct instr fetch(struct processor* proc);
+
 struct processor new_processor() {
 	return (struct processor) {};
 }
@@ -7,12 +11,104 @@ struct processor new_processor() {
 int execute_instr(struct processor* proc) {
 	struct instr in = fetch(proc);
 	int res = dispatch(proc, in);
-	proc->pc += sizeof(struct instr);
+	proc->regs[PC] += sizeof(struct instr);
+	return res;
 }
 
 struct instr fetch(struct processor* proc) {
-	return *(proc->pc);
+	struct instr res;
+	memcpy(&res, proc->memory + proc->regs[PC], sizeof(struct instr));
+	return res;
 }
+
+#define VERIFY_REG(VALUE) do { 								\
+	if ((VALUE < 0 || VALUE > NUM_REGS) && (VALUE != EQ)) 	\
+		return INVALID_REG_ERR; 							\
+	} while (0)			
+
+int load(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.src1);
+	VERIFY_REG(in.imm);
+
+	word_t base = proc->regs[in.src1];
+	word_t offset = proc->regs[in.imm];
+	proc->regs[in.dest] = *(word_t*) (base + offset);
+	return 0;
+}
+
+int store(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.src1);
+	VERIFY_REG(in.imm);
+
+	word_t base = proc->regs[in.src1];
+	word_t offset = proc->regs[in.imm];
+	word_t* addr = (word_t*) (base + offset);
+
+	*addr = proc->regs[in.dest];
+	return 0;
+}
+
+int add(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.src1);
+	VERIFY_REG(in.imm);
+
+	proc->regs[in.dest] = proc->regs[in.src1] + proc->regs[in.imm];
+	return 0;
+}
+
+int sub(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.src1);
+	VERIFY_REG(in.imm);
+
+	proc->regs[in.dest] = proc->regs[in.src1] - proc->regs[in.imm];
+	return 0;
+} 
+
+int and(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.src1);
+	VERIFY_REG(in.imm);
+
+	proc->regs[in.dest] = proc->regs[in.src1] & proc->regs[in.imm];
+	return 0;
+}
+
+int or(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.src1);
+	VERIFY_REG(in.imm);
+
+	proc->regs[in.dest] = proc->regs[in.src1] | proc->regs[in.imm];
+	return 0;
+}
+
+int xor(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.src1);
+	VERIFY_REG(in.imm);
+
+	proc->regs[in.dest] = proc->regs[in.src1] ^ proc->regs[in.imm];
+	return 0;
+} 
+
+int movi(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+
+	proc->regs[in.dest] = in.imm;
+	return 0;
+} 
+
+int movr(struct processor* proc, struct instr in) {
+	VERIFY_REG(in.dest);
+	VERIFY_REG(in.imm);
+
+	proc->regs[in.dest] = proc->regs[in.imm];
+	return 0;
+} 
 
 int dispatch(struct processor* proc, struct instr in) {
 	switch (in.opcode) {
@@ -34,47 +130,7 @@ int dispatch(struct processor* proc, struct instr in) {
 			return movi(proc, in);
 		case MOVR:
 			return movr(proc, in);
+		default:
+			return INVALID_OPCODE_ERR;
 	}
 }
-
-int load(struct processor* proc, struct instr in) {
-	word_t base = proc->regs[in.src1];
-	word_t offset = proc->regs[in.imm];
-	proc->regs[in.dest] = *(word_t*) (base + offset);
-}
-
-int store(struct processor* proc, struct instr in) {
-	word_t base = proc->regs[in.src1];
-	word_t offset = proc->regs[in.imm];
-	word_t* addr = (word_t*) (base + offset);
-
-	*addr = proc->regs[in.dest];
-}
-
-int add(struct processor* proc, struct instr in) {
-	proc->regs[in.dest] = proc->regs[in.src1] + proc->regs[in.imm];
-}
-
-int sub(struct processor* proc, struct instr in) {
-	proc->regs[in.dest] = proc->regs[in.src1] - proc->regs[in.imm];
-} 
-
-int and(struct processor* proc, struct instr in) {
-	proc->regs[in.dest] = proc->regs[in.src1] & proc->regs[in.imm];
-}
-
-int or(struct processor* proc, struct instr in) {
-	proc->regs[in.dest] = proc->regs[in.src1] | proc->regs[in.imm];
-}
-
-int xor(struct processor* proc, struct instr in) {
-	proc->regs[in.dest] = proc->regs[in.src1] ^ proc->regs[in.imm];
-} 
-
-int movi(struct processor* proc, struct instr in) {
-	proc->regs[in.dest] = in.imm;
-} 
-
-int movr(struct processor* proc, struct instr in) {
-	proc->regs[in.dest] = proc->regs[in.imm];
-} 

@@ -8,8 +8,7 @@
 #define word_t 			uint64_t
 // #define WORD_SIZE		sizeof(word_t)
 // #define INSTR_SIZE		12
-#define UNU				NULL	
-#define NUM_GP_REGS		8		
+#define NUM_REGS		10
 
 // Opcodes:
 #define LOAD	0
@@ -66,5 +65,5 @@ struct instr {
 // 	INSTR(BNE, EQ, R4, UNU),
 // };
 
-#endif
+#endif // INSTRUCTIONS
 
