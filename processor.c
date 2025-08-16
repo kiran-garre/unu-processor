@@ -17,7 +17,7 @@ int execute_instr(struct processor* proc) {
 
 struct instr fetch(struct processor* proc) {
 	struct instr res;
-	memcpy(&res, proc->memory + proc->regs[PC], sizeof(struct instr));
+	memcpy(&res, proc->memory->data + proc->regs[PC], sizeof(struct instr));
 	return res;
 }
 

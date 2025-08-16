@@ -3,23 +3,39 @@
 #include "processor.h"
 #include "ememory.h"
 
+#define HEADER_SIZE (2 * sizeof(uint16_t))
 
-void write_header(char* data, uint16_t size, uint16_t next, uint16_t offset) {
+/**
+ * Emulated memory header format:
+ * 
+ * +++++++++++++++ +++++++++++++++ 
+ * | size (word) | | next (word) |
+ * +++++++++++++++ +++++++++++++++ 
+ * 
+ * where: 
+ *  - `size` contains the size of the free space (including the header)
+ *  - `next` contains the index of the start of the next free section 
+ */
+
+static void write_header(char* data, uint16_t size, uint16_t next, uint16_t offset) {
 	memcpy(data + offset, &size, sizeof(uint16_t));
 	memcpy(data + offset + sizeof(uint16_t), &next, sizeof(uint16_t));
 }
 
-void read_header(char* data, uint16_t* size, uint16_t* next, uint16_t offset) {
+static void read_header(char* data, uint16_t* size, uint16_t* next, uint16_t offset) {
 	memcpy(size, data + offset, sizeof(uint16_t));
 	memcpy(next, data + offset + sizeof(uint16_t), sizeof(uint16_t));
 }
 
-void init_ememory(struct ememory* memory) {
-	write_header(memory->data, MEM_SIZE - STARTING_OFFSET, 0, STARTING_OFFSET);
+void init_ememory(struct ememory* memory, int size) {
+	write_header(memory->data, size - STARTING_OFFSET, 0, STARTING_OFFSET);
 	memory->free_head = STARTING_OFFSET;
 }
 
-struct eptr emalloc(struct ememory* memory, uint16_t size) {
+struct eptr emalloc(struct ememory* memory, uint16_t request) {
+	if (request == 0) {
+		return ENULL;
+	}
 	struct eptr res;
 	char* data = memory->data;
 	uint16_t block_size, next;
@@ -28,30 +44,40 @@ struct eptr emalloc(struct ememory* memory, uint16_t size) {
 	
 	while (curr) {
 		read_header(data, &block_size, &next, curr);
-		if (block_size >= size) {
-			res.ptr = curr;
-			res.size = size;
 
-			// Shrink free block if space is left over
-			// Otherwise, if prev exists, set prev.next = next
-			// Otherwise, set free_head to next
-			if (block_size > size) {
-				curr += size;
-				write_header(data, block_size - size, next, curr);
-				if (prev == 0) {
-					memory->free_head = curr;
-				} else {
-					memcpy(data + prev + sizeof(uint16_t), &curr, sizeof(uint16_t));
-				}
-			} else if (prev != 0) {
-				memcpy(data + prev + sizeof(uint16_t), &next, sizeof(uint16_t));
+		if (request > block_size) {
+			prev = curr;
+			curr = next;
+			continue;
+		}
+
+		if (block_size > request + HEADER_SIZE) {
+			// Shrinking will leave enough space for a header + at least 1 byte
+			res.ptr = curr;
+			res.size = request;
+
+			curr += request;
+			write_header(data, block_size - request, next, curr);
+			if (prev == 0) {
+				memory->free_head = curr;
 			} else {
-				memory->free_head = next;
+				memcpy(data + prev + sizeof(uint16_t), &curr, sizeof(uint16_t));
 			}
 			return res;
-		} 
-		prev = curr;
-		curr = next;
+		} else {
+			// Either it's a perfect fit, or the block is big enough but the
+			// leftover space is too small to store a header + 1 byte.
+			// In both cases, allocate the whole block.
+			res.ptr = curr;
+			res.size = block_size;
+
+			if (prev == 0) {
+				memory->free_head = next;
+			} else {
+				memcpy(data + prev + sizeof(uint16_t), &next, sizeof(uint16_t));
+			}
+			return res;
+		}
 	}
 	return ENULL;
 }
@@ -86,6 +112,8 @@ static int free_before_head(struct ememory *memory, struct eptr ptr) {
  * 
  * Handles the case where the pointer to be freed is in between the first and
  * last free headers.
+ * 
+ * This function looks horrendous without some spacing.
  */
 static int free_in_middle(struct ememory *memory, struct eptr ptr,
                           uint16_t curr, uint16_t curr_size,
@@ -94,21 +122,20 @@ static int free_in_middle(struct ememory *memory, struct eptr ptr,
 	char* data = memory->data;
 	if (curr + curr_size == ptr.ptr && ptr.ptr + ptr.size == curr_next) {
 		write_header(data, curr_size + ptr.size + next_size, next_next, curr);
-		return 0;
-	}
-	if (curr + curr_size < ptr.ptr && ptr.ptr + ptr.size == curr_next) {
+	} 
+	
+	else if (curr + curr_size < ptr.ptr && ptr.ptr + ptr.size == curr_next) {
 		write_header(data, curr_size, ptr.ptr, curr);
 		write_header(data, ptr.size + next_size, next_next, ptr.ptr);
-		return 0;
-	}
-	if (curr + curr_size == ptr.ptr && ptr.ptr + ptr.size < curr_next) {
+	} 
+	
+	else if (curr + curr_size == ptr.ptr && ptr.ptr + ptr.size < curr_next) {
 		write_header(data, curr_size + ptr.size, curr_next, curr);
-		return 0;
 	}
-	if (curr + curr_size < ptr.ptr && ptr.ptr + ptr.size < curr_next) {
+	
+	else if (curr + curr_size < ptr.ptr && ptr.ptr + ptr.size < curr_next) {
 		write_header(data, curr_size, ptr.ptr, curr);
 		write_header(data, ptr.size, curr_next, ptr.ptr);
-		return 0;
 	}
 	return 0;
 }
@@ -160,7 +187,14 @@ int efree(struct ememory* memory, struct eptr ptr) {
 	return free_at_tail(memory, ptr, curr, curr_size);
 } 
 
-
+// In the future, implement the function below. This will allow us to simplify 
+// our free logic to  mark block as free -> merge, rather than doing it all at 
+// once.
+//
+// This function will most likely be very similar to the helper methods above.
+int coalesce(struct ememory* memory, uint16_t ptr, uint16_t next, uint16_t prev) {
+	return -1;
+}
 
 /**
  * IMPLEMENTATION DETAILS:

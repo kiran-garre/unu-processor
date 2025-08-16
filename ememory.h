@@ -10,7 +10,7 @@
 
 // Memory structure
 struct ememory {
-    char data[MEM_SIZE];
+    char* data;
     uint16_t free_head;
 };
 
@@ -24,21 +24,9 @@ struct eptr {
 };
 
 /**
- * Emulated memory header format:
- * 
- * +++++++++++++++ +++++++++++++++ 
- * | size (word) | | next (word) |
- * +++++++++++++++ +++++++++++++++ 
- * 
- * where: 
- *  - `size` contains the size of the free space (including the header)
- *  - `next` contains the index of the start of the next free section 
- */
-
-/**
  * Initializes emulated memory to be used by emalloc() and efree()
  */
-void init_ememory(struct ememory* memory);
+void init_ememory(struct ememory* memory, int size);
 
 /**
  * Allocates a new chunk of emulated memory with the given size
