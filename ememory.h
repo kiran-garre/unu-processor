@@ -24,6 +24,11 @@ struct eptr {
 };
 
 /**
+ * Checks if a given eptr is null
+ */
+int is_null(struct eptr ptr);
+
+/**
  * Initializes emulated memory to be used by emalloc() and efree()
  */
 void init_ememory(struct ememory* memory, int size);

@@ -3,19 +3,22 @@
 
 #include "instructions.h"
 #include "ememory.h"
-
-// Errors
-#define INVALID_OPCODE_ERR		-1000
-#define INVALID_REG_ERR			-1001
+#include "errors.h"
 
 struct processor {
-	uint64_t regs[NUM_REGS];
+	word_t regs[NUM_REGS];
 	struct ememory* memory;
 };
 
 /**
  * Returns a new processor with uninitialized ememory
  */
-struct processor new_processor();
+struct processor new_processor(struct ememory* memory);
+
+/**
+ * Begins execution of processor, starting at the ememory location loaded into
+ * the program counter (proc->regs[PC])
+ */
+int run(struct processor* proc);
 
 #endif // PROCESSOR

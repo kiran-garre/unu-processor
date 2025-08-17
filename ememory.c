@@ -5,6 +5,10 @@
 
 #define HEADER_SIZE (2 * sizeof(uint16_t))
 
+int is_null(struct eptr ptr) {
+	return (ptr.ptr == 0);
+}
+
 /**
  * Emulated memory header format:
  * 

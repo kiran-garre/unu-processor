@@ -4,40 +4,51 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "macro_utils/macro_utils.h"
+
 // Constants:
 #define word_t 			uint32_t
 #define NUM_REGS		10
+#define IGNR			0
 
 // Opcodes:
-#define LOAD	0
-#define STORE	1
-#define ADD		2
-#define SUB		3
-#define AND		4
-#define OR		5
-#define XOR		6
-#define MOVR	7
-#define MOVI	8
-#define BEQ		9
-#define BNE		10
+#define OPCODES(X)		\
+	X(LOAD, 	0)	 	\
+	X(STORE, 	1)	 	\
+	X(ADD, 		2)	 	\
+	X(SUB, 		3)	 	\
+	X(AND, 		4)	 	\
+	X(OR, 		5)	 	\
+	X(XOR, 		6)	 	\
+	X(MOVR, 	7)	 	\
+	X(MOVI, 	8)	 	\
+	X(BEQ, 		9)	 	\
+	X(BNE, 		10)	 	\
+	X(BRN, 		11)	 
+
+MACRO_TRACK(OPCODES)
+MACRO_DISPLAY(OPCODES, opcode_to_str)
 
 // Registers:
-#define R0		0
-#define R1		1
-#define R2		2
-#define R3		3
-#define R4		4
-#define R5		5
-#define R6		6
-#define R7		7
+#define REGISTERS(X) 	\
+	X(R0,	0) 			\
+	X(R1,	1) 			\
+	X(R2,	2) 			\
+	X(R3,	3) 			\
+	X(R4,	4) 			\
+	X(R5,	5) 			\
+	X(R6,	6) 			\
+	X(R7,	7) 			\
+	X(PC,	8) 			\
+	X(EQ,	9) 
 
-#define PC		8
-#define EQ		9
+MACRO_TRACK(REGISTERS)
+MACRO_DISPLAY(REGISTERS, reg_to_str)
 
 struct instr {
-	char opcode;
-	char dest : 4;
-	char src1 : 4;
+	unsigned char opcode;
+	unsigned char dest : 4;
+	unsigned char src1 : 4;
 	uint16_t imm;
 };
 
