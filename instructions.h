@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "macro_utils/macro_utils.h"
+#include "debugger/macro_utils.h"
 
 // Constants:
 #define word_t 			uint32_t
