@@ -89,7 +89,7 @@ void regs_(struct processor* proc, int num_args, ...) {
 
 	printf("REGISTERS: --------------------------\n");
 	for (int i = 0; i < num_args; i++) {
-		printf("    %s: %d (0x%x)\n", reg_to_str(va_arg(argptr, int)), regs[i], regs[i]);
+		printf("    %s: %-4d (0x%x)\n", reg_to_str(va_arg(argptr, int)), regs[i], regs[i]);
 	}
 	printf("-------------------------------------\n");
 	

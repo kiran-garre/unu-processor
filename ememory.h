@@ -15,7 +15,7 @@ struct ememory {
 };
 
 // Null pointer for emulated memory
-#define ENULL (struct eptr) {}
+#define ENULL (struct eptr) { 0 }
 
 // Pointer structure
 struct eptr {
