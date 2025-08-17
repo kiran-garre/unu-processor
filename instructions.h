@@ -5,9 +5,7 @@
 #include <stdlib.h>
 
 // Constants:
-#define word_t 			uint64_t
-// #define WORD_SIZE		sizeof(word_t)
-// #define INSTR_SIZE		12
+#define word_t 			uint32_t
 #define NUM_REGS		10
 
 // Opcodes:
@@ -40,30 +38,10 @@ struct instr {
 	char opcode;
 	char dest : 4;
 	char src1 : 4;
-	word_t imm;
+	uint16_t imm;
 };
 
 #define INSTR(OPCODE, DEST, SRC1, SRC2) (struct instr){OPCODE, DEST, SRC1, SRC2}
-
-// Default instructions
-// #define source 		0x5
-// #define dest		0x6
-// #define size		8
-
-// struct instr default_set[] = {
-// 	INSTR(MOVI, R0, UNU, source),
-// 	INSTR(MOVI, R1, UNU, dest),
-// 	INSTR(MOVI, R2, UNU, size),
-// 	INSTR(MOVI, R3, UNU, 0),
-// 	INSTR(MOVI, R6, UNU, WORD_SIZE),
-
-// 	INSTR(MOVR, R4, UNU, PC),
-// 	INSTR(LOAD, R5, R0, R3),
-// 	INSTR(STORE, R5, R1, R3),
-// 	INSTR(ADD, R3, R3, R6),
-// 	INSTR(SUB, EQ, R2, R3),
-// 	INSTR(BNE, EQ, R4, UNU),
-// };
 
 #endif // INSTRUCTIONS
 
