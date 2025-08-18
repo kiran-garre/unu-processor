@@ -33,7 +33,7 @@ void context(struct processor* proc) {
 
 	printf("CONTEXT: ----------------------------\n");
 	for (int i = 0; i < CONTEXT_LEN; i++) {
-		int offset = initial_offset + (i + CONTEXT_RELATIVE_START) * sizeof(struct instr);
+		word_t offset = initial_offset + (i + CONTEXT_RELATIVE_START) * sizeof(struct instr);
 		if (offset == initial_offset) {
 			printf("->  ");
 		} else {
