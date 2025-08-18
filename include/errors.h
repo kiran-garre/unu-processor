@@ -1,7 +1,7 @@
 #ifndef ERRORS
 #define ERRORS
 
-#include "debugger/macro_utils.h"
+#include "macro_utils.h"
 
 #define ERROR_CODES(X) 				\
     X(INVALID_OPCODE_ERR, 	-1000) 	\

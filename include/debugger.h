@@ -1,8 +1,8 @@
 #ifndef DEBUGGER
 #define DEBUGGER
 
-#include "../instructions.h"
-#include "../processor.h"
+#include "instructions.h"
+#include "processor.h"
 #include "disassembler.h"
 #include <stdarg.h>
 
@@ -15,7 +15,6 @@ void raw_context(struct processor* proc);
  * raw_context(), but prettier
  */
 void context(struct processor* proc);
-
 
 /**
  * Prints only the contents of the requested registers

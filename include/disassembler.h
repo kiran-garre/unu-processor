@@ -1,7 +1,7 @@
 #ifndef DISASSEMBLER
 #define DISASSEMBLER
 
-#include "../instructions.h"
+#include "instructions.h"
 #include <stdio.h>
 #include <string.h>
 
